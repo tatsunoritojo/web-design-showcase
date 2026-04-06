@@ -1,0 +1,836 @@
+<!--
+  aesthetic_dna: Editorial Art Gallery / High-End Museum Archive
+  ui_paradigm: Continuous Spatial Canvas / Staggered Asymmetrical Exhibition Layout
+  palette_choice: "Gallery Plaster" (#F7F7F5), "Archival Ink" (#121212), "Muted Graphite" (#666666)
+-->
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>思考の建築 — AI能力展覧会</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,600&family=Manrope:wght@200;300;400;500&family=Noto+Serif+JP:wght@200;300;400;500;600&family=Noto+Sans+JP:wght@200;300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['"Noto Serif JP"', '"Cormorant Garamond"', 'serif'],
+                        sans: ['"Noto Sans JP"', 'Manrope', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        gallery: {
+                            base: '#F7F7F5',
+                            ink: '#0A0A0A',
+                            graphite: '#5C5C5C',
+                            plaster: '#EBEBE8',
+                        }
+                    },
+                    letterSpacing: {
+                        'widest-xl': '0.2em',
+                        'tighter-xl': '-0.04em',
+                    },
+                    transitionTimingFunction: {
+                        'slow-ease': 'cubic-bezier(0.19, 1, 0.22, 1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::selection { background-color: #0A0A0A; color: #F7F7F5; }
+        html { cursor: none; }
+        body {
+            background-color: #F7F7F5;
+            color: #0A0A0A;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #F7F7F5; }
+        ::-webkit-scrollbar-thumb { background: #D1D1CD; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0A0A0A; }
+
+        /* Custom Cursor */
+        #cursor { position: fixed; width: 20px; height: 20px; border: 1.5px solid #0A0A0A; border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: width 0.4s cubic-bezier(0.19,1,0.22,1), height 0.4s cubic-bezier(0.19,1,0.22,1), border-color 0.3s, background 0.3s, opacity 0.3s; mix-blend-mode: difference; }
+        #cursor.hovering { width: 60px; height: 60px; background: rgba(247,247,245,0.15); border-color: #F7F7F5; }
+        #cursor-dot { position: fixed; width: 5px; height: 5px; background: #0A0A0A; border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); mix-blend-mode: difference; transition: opacity 0.3s; }
+
+        /* Film grain overlay */
+        #grain { position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: 0.035; }
+
+        .artwork-container { position: relative; overflow: hidden; background: #EBEBE8; }
+
+        /* Clip-path image reveal */
+        .artwork-container .artwork-image {
+            transition: transform 1.8s cubic-bezier(0.19,1,0.22,1), filter 1.2s ease;
+            transform-origin: center;
+            clip-path: inset(100% 0 0 0);
+        }
+        .img-revealed .artwork-image {
+            clip-path: inset(0 0 0 0);
+            transition: clip-path 1.6s cubic-bezier(0.77,0,0.175,1), transform 1.8s cubic-bezier(0.19,1,0.22,1), filter 1.2s ease;
+        }
+        .artwork-wrapper:hover .artwork-image {
+            transform: scale(1.05);
+            filter: grayscale(15%) contrast(1.08);
+        }
+
+        .placard { opacity: 0; transform: translateY(10px); transition: all 0.8s cubic-bezier(0.19,1,0.22,1); }
+        .artwork-wrapper:hover .placard { opacity: 1; transform: translateY(0); }
+
+        .ambient-line { width: 1px; background: linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.1) 50%, rgba(10,10,10,0) 100%); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(60px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up { animation: fadeUp 1.4s cubic-bezier(0.19,1,0.22,1) forwards; opacity: 0; }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-500 { animation-delay: 0.5s; }
+
+        .vertical-text { writing-mode: vertical-rl; text-orientation: mixed; }
+
+        /* Split text reveal */
+        .split-text .char {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(100%) rotateX(-80deg);
+            transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.19,1,0.22,1);
+        }
+        .split-text.visible .char {
+            opacity: 1;
+            transform: translateY(0) rotateX(0);
+        }
+
+        /* Scroll reveals */
+        .reveal, .reveal-left, .reveal-right, .reveal-scale {
+            opacity: 0;
+            transition: opacity 1.2s cubic-bezier(0.19,1,0.22,1), transform 1.4s cubic-bezier(0.19,1,0.22,1);
+        }
+        .reveal { transform: translateY(80px); }
+        .reveal-left { transform: translateX(-100px) rotate(-2deg); }
+        .reveal-right { transform: translateX(100px) rotate(2deg); }
+        .reveal-scale { transform: scale(0.85); transition-duration: 1.6s, 2s; }
+        .reveal.visible, .reveal-left.visible, .reveal-right.visible, .reveal-scale.visible {
+            opacity: 1; transform: translateY(0) translateX(0) rotate(0) scale(1);
+        }
+
+        .stagger > *:nth-child(1) { transition-delay: 0s; }
+        .stagger > *:nth-child(2) { transition-delay: 0.2s; }
+        .stagger > *:nth-child(3) { transition-delay: 0.4s; }
+        .stagger > *:nth-child(4) { transition-delay: 0.6s; }
+
+        .parallax-img { will-change: transform; }
+
+        /* Quote cascade — dramatic */
+        .quote-cascade > * {
+            opacity: 0;
+            transform: translateX(-40px) scale(0.96);
+            filter: blur(8px);
+            transition: all 1.2s cubic-bezier(0.19,1,0.22,1);
+        }
+        .quote-cascade.visible > *:nth-child(1) { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); transition-delay: 0.2s; }
+        .quote-cascade.visible > *:nth-child(2) { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); transition-delay: 0.7s; }
+        .quote-cascade.visible > *:nth-child(3) { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); transition-delay: 1.2s; }
+        .quote-cascade.visible > *:nth-child(4) { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); transition-delay: 1.7s; }
+
+        /* Typewriter */
+        .typewriter code {
+            overflow: hidden; display: block; white-space: pre;
+            border-right: 2px solid rgba(247,247,245,0.6);
+            max-width: 0;
+            transition: max-width 3s steps(50);
+        }
+        .typewriter.visible code { max-width: 100%; animation: blink-caret 0.7s step-end 10; }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: rgba(247,247,245,0.6) } }
+
+        /* 3D tilt cards */
+        .card-lift {
+            opacity: 0; transform: translateY(60px);
+            transition: opacity 0.8s cubic-bezier(0.19,1,0.22,1), transform 1s cubic-bezier(0.19,1,0.22,1), box-shadow 0.4s ease;
+            transform-style: preserve-3d; perspective: 800px;
+        }
+        .card-lift.visible { opacity: 1; transform: translateY(0); }
+        .card-lift:hover { box-shadow: 0 30px 60px -20px rgba(10,10,10,0.15); }
+
+        /* Magnetic button effect */
+        .magnetic { transition: transform 0.3s cubic-bezier(0.19,1,0.22,1); }
+
+        /* Scroll progress */
+        #scroll-progress { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, #0A0A0A 0%, #5C5C5C 100%); z-index: 100; width: 0%; }
+
+        /* Room number counter */
+        .room-counter { font-variant-numeric: tabular-nums; }
+        .counter-val { transition: all 0.6s cubic-bezier(0.19,1,0.22,1); }
+
+        /* Horizontal scroll section */
+        .horizontal-scroll-wrapper { overflow: hidden; }
+        .horizontal-track { display: flex; gap: 1.5rem; transition: transform 0.1s linear; will-change: transform; }
+
+        /* Section divider line animation */
+        .divider-line { height: 1px; background: #0A0A0A; transform: scaleX(0); transform-origin: left; transition: transform 2s cubic-bezier(0.19,1,0.22,1); }
+        .divider-line.visible { transform: scaleX(1); }
+
+        /* Glow pulse on dark sections */
+        @keyframes glow-pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(99,102,241,0); }
+            50% { box-shadow: 0 0 60px rgba(99,102,241,0.1); }
+        }
+    </style>
+</head>
+<body class="relative min-h-screen font-sans text-gallery-ink">
+
+    <!-- Custom Cursor -->
+    <div id="cursor"></div>
+    <div id="cursor-dot"></div>
+
+    <!-- Film Grain Canvas -->
+    <canvas id="grain"></canvas>
+
+    <!-- Scroll Progress -->
+    <div id="scroll-progress"></div>
+
+    <!-- Ambient Structural Guides (Background) -->
+    <div class="fixed inset-0 pointer-events-none z-0 flex justify-between px-6 md:px-12 w-full max-w-[1920px] mx-auto">
+        <div class="ambient-line h-full"></div>
+        <div class="ambient-line h-full hidden md:block"></div>
+        <div class="ambient-line h-full hidden lg:block"></div>
+        <div class="ambient-line h-full"></div>
+    </div>
+
+    <!-- Navigation / Header -->
+    <header class="fixed top-0 left-0 w-full z-50 px-6 md:px-12 py-8 flex justify-between items-start mix-blend-difference text-gallery-base pointer-events-none">
+        <div class="pointer-events-auto group cursor-pointer">
+            <h1 class="font-display font-medium text-xl leading-none tracking-widest-xl group-hover:italic transition-all duration-500">Omni.</h1>
+            <p class="font-sans text-[10px] mt-2 tracking-widest opacity-60">系統蒐集</p>
+        </div>
+
+        <nav class="pointer-events-auto hidden md:flex space-x-12">
+            <a href="#exhibition" class="font-sans text-[11px] tracking-widest opacity-50 hover:opacity-100 transition-opacity duration-500">展覧会</a>
+            <a href="#index" class="font-sans text-[11px] tracking-widest opacity-50 hover:opacity-100 transition-opacity duration-500">技能索引</a>
+            <button class="font-sans text-[11px] tracking-widest opacity-50 hover:opacity-100 transition-opacity duration-500 flex items-center gap-2">
+                <span>対話する</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="ml-1"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+        </nav>
+    </header>
+
+    <!-- The Lobby (Hero Section) -->
+    <main class="relative z-10 mx-auto max-w-[1920px]">
+        <section class="min-h-screen flex flex-col justify-end pb-32 px-6 md:px-12 pt-40 relative">
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-end w-full h-full">
+                <!-- Title Area -->
+                <div class="md:col-span-8 animate-fade-up">
+                    <p class="font-sans text-xs tracking-widest-xl text-gallery-graphite mb-8 ml-1">第一回展覧会</p>
+                    <h2 class="font-display text-6xl md:text-8xl lg:text-[9rem] leading-[0.85] tracking-tighter-xl font-light split-text" data-split>
+                        <i class="italic text-gallery-graphite">思考</i>の<br>
+                        建築。
+                    </h2>
+                </div>
+
+                <!-- Intro Statement -->
+                <div class="md:col-span-4 md:col-start-9 animate-fade-up delay-300 md:pl-8 border-l border-gallery-ink/10">
+                    <p class="font-sans text-sm md:text-base leading-relaxed text-gallery-ink/80 max-w-sm font-light">
+                        人工知能の能力を精選し、解体する展覧会。言語、論理、抽象化、統合——それぞれの機能領域を、独立した作品として提示する。
+                    </p>
+                    <div class="mt-12 flex items-center space-x-4">
+                        <span class="block w-8 h-[1px] bg-gallery-ink"></span>
+                        <span class="font-sans text-[10px] tracking-widest font-medium">スクロールして巡回する</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Absolute positioned aesthetic elements -->
+            <div class="absolute right-12 top-40 text-right animate-fade-up delay-500 hidden lg:block">
+                <p class="font-sans text-[10px] tracking-widest text-gallery-graphite">キュレーター</p>
+                <p class="font-sans text-xs mt-1">System Base</p>
+                <p class="font-sans text-[10px] tracking-widest text-gallery-graphite mt-4">年</p>
+                <p class="font-sans text-xs mt-1">2024</p>
+            </div>
+        </section>
+
+        <!-- Spacer simulating walking through an empty hallway -->
+        <div class="h-[20vh] w-full flex items-center px-6 md:px-12" id="exhibition">
+            <div class="divider-line w-full"></div>
+        </div>
+
+        <!-- Room I: Linguistic Articulation -->
+        <section class="relative px-6 md:px-12 py-32">
+            <div class="absolute left-6 md:left-12 top-0 h-full hidden lg:flex flex-col items-start pt-[5vh]">
+                <h3 class="vertical-text font-sans text-xs tracking-widest-xl text-gallery-graphite opacity-50">第一室 — 言語の精錬</h3>
+            </div>
+
+            <div class="w-full lg:w-10/12 ml-auto grid grid-cols-1 md:grid-cols-12 gap-y-32 gap-x-12">
+
+                <!-- Exhibit A (Semantic Analysis) -->
+                <article class="md:col-span-7 artwork-wrapper group flex flex-col justify-end reveal-left">
+                    <div class="artwork-container w-full aspect-[4/5] md:aspect-[3/4] bg-gallery-plaster">
+                        <img src="https://images.unsplash.com/photo-1553356084-58ef4a67b2a7?auto=format&fit=crop&w=1200&q=80" alt="Flowing, abstract layers of monochromatic paper representing fluid language processing" class="artwork-image parallax-img w-full h-full object-cover">
+                    </div>
+                    <div class="mt-6 md:absolute md:top-8 md:-right-48 md:w-64 md:mt-0 xl:-right-72 z-10 placard md:-translate-x-4 pr-6">
+                        <div class="border-t border-gallery-ink pt-3 mb-2">
+                            <span class="font-sans text-[10px] uppercase tracking-[0.2em] text-gallery-graphite block mb-1">作品 No 01</span>
+                            <h4 class="font-display text-2xl font-medium leading-none">意味解析と統合</h4>
+                        </div>
+                        <p class="font-sans text-xs tracking-wide text-gallery-graphite mb-4">生成言語モデル</p>
+                        <p class="font-sans text-sm leading-relaxed text-gallery-ink/80 font-light">
+                            複雑な構文構造を分解し、潜在的な意図を見抜き、流麗な文章として意味を再構築する能力。単なる予測ではなく、文脈の理解。
+                        </p>
+                    </div>
+                </article>
+
+                <!-- Exhibit B (Tone & Voice Modulation) -->
+                <article class="md:col-span-4 md:col-start-9 md:mt-[30vh] artwork-wrapper group reveal-right">
+                    <div class="artwork-container w-full aspect-square bg-gallery-plaster">
+                        <img src="https://images.unsplash.com/photo-1550537687-c91072c4792d?auto=format&fit=crop&w=800&q=80" alt="Minimalist abstract dark texture" class="artwork-image parallax-img w-full h-full object-cover grayscale mix-blend-multiply opacity-90">
+                    </div>
+                    <div class="mt-6">
+                        <div class="border-t border-gallery-ink/30 pt-3 mb-2">
+                            <span class="font-sans text-[10px] uppercase tracking-[0.2em] text-gallery-graphite block mb-1">作品 No 02</span>
+                            <h4 class="font-display text-xl font-medium leading-tight">声の可塑性</h4>
+                        </div>
+                        <p class="font-sans text-[11px] leading-relaxed text-gallery-ink/70 font-light pr-4">
+                            トーン、語域、リズムのシームレスな適応。学術的な厳密さから共感的な口語まで、対話の感情的構造に合わせて声を変容させる。
+                        </p>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Spacer -->
+        <div class="h-[15vh] w-full"></div>
+
+        <!-- Room II: Synthesized Logic (Monolithic format) -->
+        <section class="relative px-6 md:px-0 py-32 bg-gallery-ink text-gallery-base transition-colors duration-1000">
+            <div class="absolute right-6 md:right-12 top-0 h-full hidden lg:flex flex-col items-end pt-[5vh] z-20">
+                <h3 class="vertical-text font-sans text-xs tracking-widest-xl text-gallery-graphite opacity-50 rotate-180">第二室 — 論理の結晶</h3>
+            </div>
+
+            <div class="max-w-[1920px] mx-auto md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+                <figure class="lg:col-span-8 artwork-wrapper overflow-hidden reveal-scale">
+                    <div class="aspect-[16/9] w-full artwork-container bg-[#1A1A1A]">
+                        <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=80" alt="Brutalist architectural lines, strict geometry representing algorithmic logic" class="artwork-image parallax-img w-full h-full object-cover opacity-80 mix-blend-luminosity">
+                    </div>
+                </figure>
+
+                <div class="lg:col-span-3 lg:col-start-10 pr-6 lg:pr-12 reveal-right">
+                    <div class="border-b border-gallery-base/20 pb-4 mb-6">
+                        <span class="font-sans text-[10px] tracking-[0.2em] text-gallery-base/50 block mb-2">作品 No 03 · インスタレーション</span>
+                        <h4 class="font-display text-4xl md:text-5xl font-light leading-none">アルゴリズムの<br><i class="italic text-gallery-base/70">剛性。</i></h4>
+                    </div>
+
+                    <dl class="space-y-6 font-sans">
+                        <div>
+                            <dt class="text-[10px] tracking-widest text-gallery-base/50 mb-1">構造</dt>
+                            <dd class="text-sm font-light leading-relaxed text-gallery-base/90">複雑な論理演算の実行、多段階推論、決定論的な数学的演繹。コードの無機質で容赦のない美。</dd>
+                        </div>
+                        <div>
+                            <dt class="text-[10px] tracking-widest text-gallery-base/50 mb-1">素材</dt>
+                            <dd class="text-sm font-light text-gallery-base/90">Python、構造化データ、ブール論理。</dd>
+                        </div>
+                        <div>
+                            <dt class="text-[10px] tracking-widest text-gallery-base/50 mb-1">寸法</dt>
+                            <dd class="text-sm font-light text-gallery-base/90">無限 / スケーラブル。</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </section>
+
+        <!-- Room III: Creative Abstraction (Triptych Layout) -->
+        <section class="relative px-6 md:px-12 pt-[25vh] pb-40">
+            <div class="text-center mb-[15vh] max-w-2xl mx-auto reveal">
+                <h3 class="font-sans text-[10px] tracking-[0.3em] text-gallery-graphite mb-4">第三室</h3>
+                <h2 class="font-display text-4xl md:text-5xl lg:text-6xl font-light">創造的抽象。</h2>
+                <p class="font-sans text-sm mt-6 text-gallery-graphite font-light">決定論的なパターンが崩れ、概念的生成へと転じる場所。着想の間。</p>
+            </div>
+
+            <!-- Triptych Container -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-12 justify-center items-end stagger">
+
+                <article class="artwork-wrapper group md:translate-y-12 reveal">
+                    <div class="artwork-container aspect-[2/3] w-full">
+                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80" alt="Abstract fluid colors blending, conceptual conceptualization" class="artwork-image w-full h-full object-cover">
+                    </div>
+                    <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                        <h4 class="font-display text-lg">横断的統合</h4>
+                        <p class="font-sans text-[10px] tracking-widest text-gallery-graphite mt-1">領域横断の着想</p>
+                    </div>
+                </article>
+
+                <article class="artwork-wrapper group z-10 shadow-2xl shadow-gallery-ink/5 reveal">
+                    <div class="artwork-container aspect-[3/4] w-full">
+                        <img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1000&q=80" alt="Volumetric light piercing darkness, representing creative sparks" class="artwork-image w-full h-full object-cover">
+                    </div>
+                    <div class="mt-6 text-center">
+                        <span class="font-sans text-[9px] tracking-[0.2em] border border-gallery-ink/20 px-2 py-1 rounded-full text-gallery-graphite mb-3 inline-block">作品 No 04</span>
+                        <h4 class="font-display text-2xl">閃きの界面</h4>
+                        <p class="font-sans text-xs text-gallery-ink/70 font-light mt-2 max-w-xs mx-auto">前例のない物語構造を生成し、硬直したデータセットの外で問題を解決する。</p>
+                    </div>
+                </article>
+
+                <article class="artwork-wrapper group md:-translate-y-8 reveal">
+                    <div class="artwork-container aspect-[2/3] w-full">
+                        <img src="https://images.unsplash.com/photo-1604871000636-074fa5117945?auto=format&fit=crop&w=800&q=80" alt="Distorted glass reflecting light, representing perspective shift" class="artwork-image w-full h-full object-cover grayscale">
+                    </div>
+                    <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 text-right">
+                        <h4 class="font-display text-lg">視座の転換</h4>
+                        <p class="font-sans text-[10px] tracking-widest text-gallery-graphite mt-1">ロールプレイとシミュレーション</p>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Room IV: Knowledge Cartography (Horizontal Scroll-like Panorama) -->
+        <section class="relative px-6 md:px-12 py-32 border-t border-gallery-ink/5">
+            <div class="absolute left-6 md:left-12 top-0 h-full hidden lg:flex flex-col items-start pt-[5vh]">
+                <h3 class="vertical-text font-sans text-xs tracking-widest-xl text-gallery-graphite opacity-50">第四室 — 知の地図製作</h3>
+            </div>
+
+            <div class="w-full lg:w-10/12 ml-auto">
+                <div class="mb-20 max-w-xl reveal">
+                    <span class="font-sans text-[10px] tracking-[0.2em] text-gallery-graphite block mb-3">作品 No 05 · パノラマ</span>
+                    <h2 class="font-display text-4xl md:text-5xl font-light leading-tight mb-6">知識の<i class="italic text-gallery-graphite">地層。</i></h2>
+                    <p class="font-sans text-sm leading-relaxed text-gallery-ink/70 font-light">
+                        科学、歴史、哲学、技術——膨大な知識領域を横断し、散在する情報を一つの明晰な地図へと編み上げる。百科事典的な記憶ではない。構造的な理解である。
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch stagger">
+                    <!-- Panoramic strip of knowledge domains -->
+                    <div class="md:col-span-3 artwork-wrapper group reveal">
+                        <div class="artwork-container aspect-[3/5] w-full">
+                            <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=600&q=80" alt="古書の図書館" class="artwork-image w-full h-full object-cover">
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="font-display text-base">歴史と人文学</h4>
+                            <p class="font-sans text-[10px] text-gallery-graphite mt-1">時間軸を超えた文脈の把握</p>
+                        </div>
+                    </div>
+                    <div class="md:col-span-5 artwork-wrapper group reveal">
+                        <div class="artwork-container aspect-[16/9] w-full">
+                            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80" alt="地球のデータビジュアライゼーション" class="artwork-image w-full h-full object-cover">
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="font-display text-base">科学と技術</h4>
+                            <p class="font-sans text-[10px] text-gallery-graphite mt-1">最先端の論文から基礎理論まで</p>
+                        </div>
+                    </div>
+                    <div class="md:col-span-4 artwork-wrapper group reveal">
+                        <div class="artwork-container aspect-[4/5] w-full">
+                            <img src="https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80" alt="抽象的な数学的構造" class="artwork-image w-full h-full object-cover grayscale">
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="font-display text-base">数学と形式論理</h4>
+                            <p class="font-sans text-[10px] text-gallery-graphite mt-1">証明、推論、抽象代数の操作</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spacer -->
+        <div class="h-[10vh] w-full"></div>
+
+        <!-- Room V: Multilingual Resonance (Split Screen / Diptych) -->
+        <section class="relative py-32 bg-[#1a1a18] text-gallery-base">
+            <div class="absolute right-6 md:right-12 top-0 h-full hidden lg:flex flex-col items-end pt-[5vh] z-20">
+                <h3 class="vertical-text font-sans text-xs tracking-widest-xl text-gallery-graphite opacity-50 rotate-180">第五室 — 多言語の共鳴</h3>
+            </div>
+
+            <div class="max-w-[1920px] mx-auto px-6 md:px-12">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 items-stretch mb-16">
+                    <!-- Left: Typographic installation -->
+                    <div class="bg-[#111110] p-12 md:p-20 flex flex-col justify-center min-h-[500px]">
+                        <span class="font-sans text-[10px] tracking-[0.2em] text-gallery-base/40 block mb-8">作品 No 06 · 連作</span>
+                        <div class="space-y-8 quote-cascade">
+                            <p class="font-display text-3xl md:text-4xl font-light leading-snug text-gallery-base/90">
+                                "言葉は世界の<br>境界である。"
+                            </p>
+                            <p class="font-display text-2xl md:text-3xl font-light leading-snug text-gallery-base/50 italic">
+                                "The limits of my language<br>mean the limits of my world."
+                            </p>
+                            <p class="font-display text-xl md:text-2xl font-light leading-snug text-gallery-base/30">
+                                "Les limites de mon langage<br>signifient les limites de mon monde."
+                            </p>
+                            <p class="font-display text-lg font-light leading-snug text-gallery-base/20">
+                                "Die Grenzen meiner Sprache<br>bedeuten die Grenzen meiner Welt."
+                            </p>
+                        </div>
+                        <p class="font-sans text-[10px] tracking-widest text-gallery-base/30 mt-12">— ルートヴィヒ・ウィトゲンシュタイン</p>
+                    </div>
+
+                    <!-- Right: Description panel -->
+                    <div class="bg-[#1f1f1d] p-12 md:p-20 flex flex-col justify-center">
+                        <h4 class="font-display text-3xl md:text-4xl font-light mb-8 reveal">言語の<i class="italic text-gallery-base/60">越境。</i></h4>
+                        <div class="space-y-6 font-sans reveal">
+                            <p class="text-sm font-light leading-relaxed text-gallery-base/70">
+                                100以上の言語を理解し、それぞれの文化的ニュアンスを保ちながら翻訳する。単語の変換ではなく、意味の移植。
+                            </p>
+                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gallery-base/10">
+                                <div>
+                                    <dt class="text-[10px] tracking-widest text-gallery-base/40 mb-1">対応言語</dt>
+                                    <dd class="text-sm font-light text-gallery-base/80">100+</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[10px] tracking-widest text-gallery-base/40 mb-1">翻訳精度</dt>
+                                    <dd class="text-sm font-light text-gallery-base/80">文脈依存・適応型</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[10px] tracking-widest text-gallery-base/40 mb-1">特性</dt>
+                                    <dd class="text-sm font-light text-gallery-base/80">文化的ニュアンス保持</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[10px] tracking-widest text-gallery-base/40 mb-1">形式</dt>
+                                    <dd class="text-sm font-light text-gallery-base/80">散文・詩・技術文書</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Room VI: The Architect's Studio (Code & Systems) -->
+        <section class="relative px-6 md:px-12 pt-[20vh] pb-40">
+            <div class="absolute left-6 md:left-12 top-0 h-full hidden lg:flex flex-col items-start pt-[5vh]">
+                <h3 class="vertical-text font-sans text-xs tracking-widest-xl text-gallery-graphite opacity-50">第六室 — 設計者の工房</h3>
+            </div>
+
+            <div class="w-full lg:w-10/12 ml-auto grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
+
+                <!-- Left: Large code-themed artwork -->
+                <article class="md:col-span-8 artwork-wrapper group reveal-left">
+                    <div class="artwork-container w-full aspect-[16/10] bg-gallery-plaster overflow-hidden relative">
+                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1400&q=80" alt="コードが映し出されたスクリーン" class="artwork-image w-full h-full object-cover">
+                        <!-- Overlay with code-like aesthetic -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-gallery-ink/60 via-transparent to-transparent"></div>
+                        <div class="absolute bottom-8 left-8 right-8">
+                            <pre class="font-mono text-[11px] leading-relaxed text-gallery-base/80 typewriter"><code>async function architect(vision) {
+  const blueprint = await analyze(vision);
+  const system = design(blueprint, {
+    patterns: ["clean", "scalable", "elegant"],
+    constraints: vision.requirements
+  });
+  return implement(system);
+}</code></pre>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <div class="border-t border-gallery-ink pt-3 mb-2">
+                            <span class="font-sans text-[10px] tracking-[0.2em] text-gallery-graphite block mb-1">作品 No 07 · インタラクティブ</span>
+                            <h4 class="font-display text-2xl font-medium">ソフトウェアの建築術</h4>
+                        </div>
+                        <p class="font-sans text-sm leading-relaxed text-gallery-ink/70 font-light max-w-lg">
+                            構想から実装まで。システム設計、アルゴリズム構築、デバッグ、リファクタリング——コードを書くだけでなく、ソフトウェアという構造物を設計する。
+                        </p>
+                    </div>
+                </article>
+
+                <!-- Right: Stacked capability cards -->
+                <div class="md:col-span-4 space-y-8 md:mt-[15vh]">
+                    <article class="artwork-wrapper group p-6 border border-gallery-ink/10 bg-white card-lift">
+                        <span class="font-sans text-[10px] tracking-[0.2em] text-gallery-graphite block mb-3">作品 No 08</span>
+                        <h4 class="font-display text-xl font-medium mb-3">データの彫刻</h4>
+                        <p class="font-sans text-[11px] leading-relaxed text-gallery-ink/60 font-light">
+                            生データを構造化し、分析し、洞察へと昇華する。CSV、JSON、SQL——あらゆる形式の情報を受け取り、意味のある物語を紡ぎ出す。
+                        </p>
+                        <div class="mt-4 pt-4 border-t border-gallery-ink/5 flex gap-3">
+                            <span class="text-[9px] tracking-widest text-gallery-graphite border border-gallery-ink/10 px-2 py-1 rounded">分析</span>
+                            <span class="text-[9px] tracking-widest text-gallery-graphite border border-gallery-ink/10 px-2 py-1 rounded">可視化</span>
+                            <span class="text-[9px] tracking-widest text-gallery-graphite border border-gallery-ink/10 px-2 py-1 rounded">予測</span>
+                        </div>
+                    </article>
+
+                    <article class="artwork-wrapper group p-6 border border-gallery-ink/10 bg-white card-lift">
+                        <span class="font-sans text-[10px] tracking-[0.2em] text-gallery-graphite block mb-3">作品 No 09</span>
+                        <h4 class="font-display text-xl font-medium mb-3">視覚の解読</h4>
+                        <p class="font-sans text-[11px] leading-relaxed text-gallery-ink/60 font-light">
+                            画像、図表、スクリーンショット——視覚情報を読み解き、言語化する。見えるものの意味を抽出し、見えないものとの関係を推論する。
+                        </p>
+                        <div class="mt-4 pt-4 border-t border-gallery-ink/5 flex gap-3">
+                            <span class="text-[9px] tracking-widest text-gallery-graphite border border-gallery-ink/10 px-2 py-1 rounded">画像認識</span>
+                            <span class="text-[9px] tracking-widest text-gallery-graphite border border-gallery-ink/10 px-2 py-1 rounded">図表分析</span>
+                        </div>
+                    </article>
+
+                    <article class="artwork-wrapper group p-6 border border-gallery-ink/10 bg-white card-lift">
+                        <span class="font-sans text-[10px] tracking-[0.2em] text-gallery-graphite block mb-3">作品 No 10</span>
+                        <h4 class="font-display text-xl font-medium mb-3">対話の織物</h4>
+                        <p class="font-sans text-[11px] leading-relaxed text-gallery-ink/60 font-light">
+                            長大な会話の中で文脈を保持し、過去の発言を踏まえて応答を紡ぐ。対話とは単なる応答の連鎖ではなく、共に織り上げる一枚の布である。
+                        </p>
+                        <div class="mt-4 pt-4 border-t border-gallery-ink/5 flex gap-3">
+                            <span class="text-[9px] tracking-widest text-gallery-graphite border border-gallery-ink/10 px-2 py-1 rounded">文脈保持</span>
+                            <span class="text-[9px] tracking-widest text-gallery-graphite border border-gallery-ink/10 px-2 py-1 rounded">推論</span>
+                            <span class="text-[9px] tracking-widest text-gallery-graphite border border-gallery-ink/10 px-2 py-1 rounded">共創</span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spacer before footer -->
+        <div class="h-[10vh] w-full"></div>
+
+        <!-- Exit / Footer -->
+        <footer class="border-t border-gallery-ink/10 px-6 md:px-12 py-24 md:py-32 bg-gallery-plaster/30">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-12">
+                <div class="md:col-span-5 reveal">
+                    <h2 class="font-display text-3xl md:text-5xl font-light mb-8">アーカイブに<br><i class="italic text-gallery-graphite">接続する。</i></h2>
+                    <p class="font-sans text-sm font-light text-gallery-ink/70 max-w-sm mb-12">
+                        全六室、十作品。言語から論理、創造から知識、多言語から設計まで——本展覧会はAIの能力を構造化し、提示する試みである。これらの能力をあなたの環境に展開するには、対話を開始してください。
+                    </p>
+                    <a href="#" class="inline-flex items-center space-x-4 border-b border-gallery-ink pb-2 group">
+                        <span class="font-sans text-xs tracking-widest font-medium">対話を開始する</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="transform group-hover:translate-x-2 transition-transform duration-300"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </a>
+                </div>
+
+                <div class="md:col-span-3 md:col-start-8 font-sans text-xs uppercase tracking-widest text-gallery-graphite space-y-6">
+                    <p class="text-gallery-ink font-medium">展示仕様</p>
+                    <ul class="space-y-3">
+                        <li class="flex justify-between border-b border-gallery-ink/10 pb-1"><span>モデル</span> <span>Omni v4</span></li>
+                        <li class="flex justify-between border-b border-gallery-ink/10 pb-1"><span>応答速度</span> <span>< 800ms</span></li>
+                        <li class="flex justify-between border-b border-gallery-ink/10 pb-1"><span>文脈窓</span> <span>128k</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-32 pt-8 flex flex-col md:flex-row justify-between items-center font-sans text-[10px] uppercase tracking-widest text-gallery-graphite">
+                <p>© 2024 系統蒐集</p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="#" class="hover:text-gallery-ink transition-colors">宣言</a>
+                    <a href="#" class="hover:text-gallery-ink transition-colors">API文書</a>
+                    <a href="#" class="hover:text-gallery-ink transition-colors">連絡先</a>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+    /* ═══════════════════════════════════════════
+       1. CUSTOM CURSOR
+    ═══════════════════════════════════════════ */
+    const cursor = document.getElementById('cursor');
+    const cursorDot = document.getElementById('cursor-dot');
+    let cx = 0, cy = 0, dx = 0, dy = 0;
+
+    document.addEventListener('mousemove', e => { cx = e.clientX; cy = e.clientY; cursorDot.style.left = cx+'px'; cursorDot.style.top = cy+'px'; });
+
+    function animateCursor() {
+        dx += (cx - dx) * 0.12; dy += (cy - dy) * 0.12;
+        cursor.style.left = dx+'px'; cursor.style.top = dy+'px';
+        requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
+
+    // Hover states
+    document.querySelectorAll('a, button, .artwork-wrapper, .card-lift').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
+    });
+
+    /* ═══════════════════════════════════════════
+       2. FILM GRAIN
+    ═══════════════════════════════════════════ */
+    const grainCanvas = document.getElementById('grain');
+    const gCtx = grainCanvas.getContext('2d');
+    function resizeGrain() { grainCanvas.width = window.innerWidth; grainCanvas.height = window.innerHeight; }
+    resizeGrain();
+    window.addEventListener('resize', resizeGrain);
+
+    function renderGrain() {
+        const w = grainCanvas.width, h = grainCanvas.height;
+        const imgData = gCtx.createImageData(w, h);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+            const v = Math.random() * 255;
+            d[i] = d[i+1] = d[i+2] = v; d[i+3] = 255;
+        }
+        gCtx.putImageData(imgData, 0, 0);
+        requestAnimationFrame(renderGrain);
+    }
+    renderGrain();
+
+    /* ═══════════════════════════════════════════
+       3. TEXT SPLIT ANIMATION
+    ═══════════════════════════════════════════ */
+    document.querySelectorAll('[data-split]').forEach(el => {
+        const html = el.innerHTML;
+        // Wrap each visible character (skip tags)
+        let result = '';
+        let inTag = false;
+        let charIndex = 0;
+        for (let i = 0; i < html.length; i++) {
+            if (html[i] === '<') { inTag = true; result += html[i]; continue; }
+            if (html[i] === '>') { inTag = false; result += html[i]; continue; }
+            if (inTag) { result += html[i]; continue; }
+            if (html[i] === '\n' || html[i] === '\r') { result += html[i]; continue; }
+            if (html[i] === ' ') { result += ' '; continue; }
+            result += `<span class="char" style="transition-delay:${charIndex * 0.04}s">${html[i]}</span>`;
+            charIndex++;
+        }
+        el.innerHTML = result;
+        // Trigger after load
+        setTimeout(() => el.classList.add('visible'), 400);
+    });
+
+    /* ═══════════════════════════════════════════
+       4. INTERSECTION OBSERVER — REVEALS
+    ═══════════════════════════════════════════ */
+    const revealSelectors = '.reveal, .reveal-left, .reveal-right, .reveal-scale, .quote-cascade, .typewriter, .card-lift, .divider-line';
+    const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12, rootMargin: '0px 0px -80px 0px' });
+    document.querySelectorAll(revealSelectors).forEach(el => obs.observe(el));
+
+    /* ═══════════════════════════════════════════
+       5. IMAGE CLIP-PATH REVEAL
+    ═══════════════════════════════════════════ */
+    const imgObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) e.target.classList.add('img-revealed');
+        });
+    }, { threshold: 0.2 });
+    document.querySelectorAll('.artwork-container').forEach(el => imgObs.observe(el));
+
+    /* ═══════════════════════════════════════════
+       6. PARALLAX + SCROLL PROGRESS
+    ═══════════════════════════════════════════ */
+    const parallaxEls = document.querySelectorAll('.parallax-img');
+    const progressBar = document.getElementById('scroll-progress');
+    let scrollTicking = false;
+
+    window.addEventListener('scroll', () => {
+        if (!scrollTicking) {
+            requestAnimationFrame(() => {
+                // Progress
+                const h = document.documentElement;
+                progressBar.style.width = ((h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100) + '%';
+
+                // Parallax
+                parallaxEls.forEach(img => {
+                    const rect = img.getBoundingClientRect();
+                    const center = rect.top + rect.height / 2;
+                    const offset = (center - window.innerHeight / 2) * 0.08;
+                    img.style.transform = `translateY(${offset}px) scale(1.08)`;
+                });
+
+                scrollTicking = false;
+            });
+            scrollTicking = true;
+        }
+    }, { passive: true });
+
+    /* ═══════════════════════════════════════════
+       7. 3D TILT ON CARDS
+    ═══════════════════════════════════════════ */
+    document.querySelectorAll('.card-lift').forEach((card, i) => {
+        card.style.transitionDelay = (i * 0.25) + 's';
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const rotateY = ((x / rect.width) - 0.5) * 12;
+            const rotateX = ((y / rect.height) - 0.5) * -12;
+            card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px)`;
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(800px) rotateX(0) rotateY(0) translateY(0)';
+        });
+    });
+
+    /* ═══════════════════════════════════════════
+       8. MAGNETIC BUTTONS
+    ═══════════════════════════════════════════ */
+    document.querySelectorAll('nav a, nav button, footer a').forEach(el => {
+        el.classList.add('magnetic');
+        el.addEventListener('mousemove', e => {
+            const rect = el.getBoundingClientRect();
+            const mx = e.clientX - rect.left - rect.width/2;
+            const my = e.clientY - rect.top - rect.height/2;
+            el.style.transform = `translate(${mx*0.3}px, ${my*0.3}px)`;
+        });
+        el.addEventListener('mouseleave', () => { el.style.transform = ''; });
+    });
+
+    /* ═══════════════════════════════════════════
+       9. SMOOTH SCROLL (Lenis-lite)
+    ═══════════════════════════════════════════ */
+    let scrollY = window.scrollY;
+    let targetScrollY = scrollY;
+    let smoothing = false;
+
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            const target = document.querySelector(a.getAttribute('href'));
+            if (target) {
+                targetScrollY = target.getBoundingClientRect().top + window.scrollY;
+                if (!smoothing) smoothScroll();
+            }
+        });
+    });
+
+    function smoothScroll() {
+        smoothing = true;
+        scrollY += (targetScrollY - scrollY) * 0.08;
+        window.scrollTo(0, scrollY);
+        if (Math.abs(targetScrollY - scrollY) > 1) {
+            requestAnimationFrame(smoothScroll);
+        } else {
+            smoothing = false;
+        }
+    }
+
+    /* ═══════════════════════════════════════════
+       10. COUNTER ANIMATION (Room V stats)
+    ═══════════════════════════════════════════ */
+    document.querySelectorAll('dd').forEach(dd => {
+        const text = dd.textContent.trim();
+        const match = text.match(/^(\d+)\+?$/);
+        if (match) {
+            const target = parseInt(match[1]);
+            const suffix = text.includes('+') ? '+' : '';
+            dd.setAttribute('data-count', target);
+            dd.setAttribute('data-suffix', suffix);
+            dd.textContent = '0' + suffix;
+
+            const cObs = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        animateCounter(dd, target, suffix);
+                        cObs.unobserve(dd);
+                    }
+                });
+            }, { threshold: 0.5 });
+            cObs.observe(dd);
+        }
+    });
+
+    function animateCounter(el, target, suffix) {
+        let current = 0;
+        const step = Math.ceil(target / 60);
+        const interval = setInterval(() => {
+            current = Math.min(current + step, target);
+            el.textContent = current + suffix;
+            if (current >= target) clearInterval(interval);
+        }, 25);
+    }
+    </script>
+</body>
+</html>
