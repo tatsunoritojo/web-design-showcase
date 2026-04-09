@@ -1,0 +1,465 @@
+<!--
+  aesthetic_dna: Japanese Traditional Ryokan / Wabi-Sabi Minimalism
+  ui_paradigm: Vertical Text Flow / Generous Whitespace / Scroll-Driven Reveal
+  palette_choice: "Sumi" (#1A1A1A), "Kincha" (#C4972F), "Kinu" (#F5F0E8), "Shironeri" (#FCFAF5)
+-->
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>湯宿 かさね — 奥湯河原の隠れ宿</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;500;600&family=Noto+Sans+JP:wght@200;300;400&family=Shippori+Mincho:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mincho: ['"Shippori Mincho"', '"Noto Serif JP"', 'serif'],
+                        gothic: ['"Noto Sans JP"', 'sans-serif'],
+                    },
+                    colors: {
+                        wa: {
+                            sumi: '#1A1A1A',
+                            kincha: '#C4972F',
+                            kinu: '#F5F0E8',
+                            shironeri: '#FCFAF5',
+                            nezumi: '#7D7D7D',
+                            usuzumi: '#B0A99F',
+                            ai: '#2B4B65',
+                            matcha: '#6B7D5C',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::selection { background-color: #C4972F; color: #FCFAF5; }
+        body {
+            background-color: #FCFAF5;
+            color: #1A1A1A;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .vertical-rl {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1.2s cubic-bezier(0.19,1,0.22,1),
+                        transform 1.4s cubic-bezier(0.19,1,0.22,1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-40px);
+            transition: opacity 1.2s cubic-bezier(0.19,1,0.22,1),
+                        transform 1.4s cubic-bezier(0.19,1,0.22,1);
+        }
+        .reveal-left.visible { opacity: 1; transform: translateX(0); }
+
+        .kincha-line { display: block; width: 40px; height: 1px; background-color: #C4972F; }
+
+        .img-zoom { overflow: hidden; }
+        .img-zoom img {
+            transition: transform 1.8s cubic-bezier(0.19,1,0.22,1);
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .img-zoom:hover img { transform: scale(1.06); }
+
+        .nav-link { position: relative; }
+        .nav-link::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 1px;
+            background: #C4972F; transition: width 0.6s cubic-bezier(0.19,1,0.22,1);
+        }
+        .nav-link:hover::after { width: 100%; }
+
+        .grain::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 1;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #FCFAF5; }
+        ::-webkit-scrollbar-thumb { background: #D1CBC2; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #C4972F; }
+    </style>
+</head>
+<body class="font-mincho text-wa-sumi">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-700" id="header">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 py-5 flex items-center justify-between">
+            <a href="#" class="text-lg tracking-[0.15em] font-medium">
+                <span class="text-wa-kincha">湯宿</span> かさね
+            </a>
+            <nav class="hidden md:flex items-center gap-10 font-gothic text-xs tracking-[0.2em] text-wa-shironeri/80">
+                <a href="#about" class="nav-link hover:text-wa-shironeri transition-colors">宿について</a>
+                <a href="#rooms" class="nav-link hover:text-wa-shironeri transition-colors">客室</a>
+                <a href="#cuisine" class="nav-link hover:text-wa-shironeri transition-colors">料理</a>
+                <a href="#onsen" class="nav-link hover:text-wa-shironeri transition-colors">温泉</a>
+                <a href="#access" class="nav-link hover:text-wa-shironeri transition-colors">交通</a>
+                <a href="#reserve" class="ml-2 px-5 py-2.5 border border-wa-kincha text-wa-kincha hover:bg-wa-kincha hover:text-wa-shironeri transition-all duration-500">ご予約</a>
+            </nav>
+            <button class="md:hidden text-wa-shironeri/80" id="menu-btn" aria-label="Menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="16" x2="20" y2="16"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="relative h-screen flex items-end overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-wa-sumi/30 via-transparent to-wa-sumi/70 z-[2]"></div>
+        <img
+            src="../images/ryokan/hero.jpg"
+            alt="Mountain valley landscape"
+            class="absolute inset-0 w-full h-full object-cover"
+            id="hero-img"
+        >
+
+        <div class="absolute top-1/4 right-8 md:right-16 z-10 vertical-rl text-wa-shironeri/30 text-xs tracking-[0.5em] font-gothic">
+            奥湯河原の隠れ宿
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto w-full px-6 md:px-12 pb-20 md:pb-28">
+            <p class="font-gothic text-[10px] tracking-[0.4em] text-wa-shironeri/60 mb-6">OKUYUGAWARA ONSEN</p>
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-light text-wa-shironeri leading-[1.15] tracking-tight mb-8">
+                静寂に、<br>身を<span class="text-wa-kincha">ゆだねる。</span>
+            </h1>
+            <div class="flex items-center gap-6">
+                <span class="kincha-line"></span>
+                <p class="font-gothic text-sm text-wa-shironeri/70 font-light max-w-md">
+                    全五室の小さな宿。四季折々の山の景色と、源泉掛け流しの湯をお愉しみください。
+                </p>
+            </div>
+        </div>
+
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
+            <span class="font-gothic text-[9px] tracking-[0.3em] text-wa-shironeri/40">SCROLL</span>
+            <div class="w-px h-10 bg-wa-shironeri/20 relative overflow-hidden">
+                <div class="w-full h-1/2 bg-wa-kincha/60 animate-bounce"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="py-28 md:py-40">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+                <div class="reveal img-zoom aspect-[3/4]">
+                    <img
+                        src="../images/ryokan/about.jpg"
+                        alt="Traditional Japanese inn exterior"
+                    >
+                </div>
+                <div class="reveal">
+                    <p class="font-gothic text-[10px] tracking-[0.4em] text-wa-kincha mb-6">ABOUT</p>
+                    <h2 class="text-3xl md:text-4xl font-light leading-relaxed mb-10 tracking-tight">
+                        山懐に抱かれた、<br>五室だけの湯宿。
+                    </h2>
+                    <div class="space-y-6 font-gothic text-sm text-wa-sumi/70 leading-[2.2] font-light">
+                        <p>
+                            奥湯河原の渓流沿い、四季の移ろいを間近に感じる場所に「かさね」はございます。昭和初期に建てられた数寄屋造りの母屋を丁寧に修繕し、現代の快適さを加えました。
+                        </p>
+                        <p>
+                            お客様に本当の静けさをお届けしたいという想いから、客室は五室のみ。一組一組のお客様と、ゆっくり向き合う時間を大切にしております。
+                        </p>
+                    </div>
+                    <div class="mt-12"><span class="kincha-line"></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rooms -->
+    <section id="rooms" class="py-28 md:py-40 bg-wa-kinu relative grain">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 relative z-[2]">
+            <div class="text-center mb-20 reveal">
+                <p class="font-gothic text-[10px] tracking-[0.4em] text-wa-kincha mb-6">ROOMS</p>
+                <h2 class="text-3xl md:text-5xl font-light tracking-tight">客室</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="reveal group">
+                    <div class="img-zoom aspect-[3/4] mb-6">
+                        <img src="../images/ryokan/room1.jpg" alt="Tatami room with garden view">
+                    </div>
+                    <p class="font-gothic text-[9px] tracking-[0.3em] text-wa-nezumi mb-2">ROOM 01</p>
+                    <h3 class="text-xl font-normal tracking-wide">花筏 <span class="text-sm text-wa-nezumi">はないかだ</span></h3>
+                    <p class="font-gothic text-xs text-wa-sumi/60 mt-3 leading-relaxed">渓流を望む角部屋。専用の露天風呂付き。12.5畳+次の間。</p>
+                </div>
+                <div class="reveal group" style="transition-delay: 0.15s;">
+                    <div class="img-zoom aspect-[3/4] mb-6">
+                        <img src="../images/ryokan/room2.jpg" alt="Japanese room with soft light">
+                    </div>
+                    <p class="font-gothic text-[9px] tracking-[0.3em] text-wa-nezumi mb-2">ROOM 02</p>
+                    <h3 class="text-xl font-normal tracking-wide">月草 <span class="text-sm text-wa-nezumi">つきくさ</span></h3>
+                    <p class="font-gothic text-xs text-wa-sumi/60 mt-3 leading-relaxed">竹林を臨む静かな一室。朝の光が美しい。10畳+広縁。</p>
+                </div>
+                <div class="reveal group" style="transition-delay: 0.3s;">
+                    <div class="img-zoom aspect-[3/4] mb-6">
+                        <img src="../images/ryokan/room3.jpg" alt="Minimalist Japanese interior">
+                    </div>
+                    <p class="font-gothic text-[9px] tracking-[0.3em] text-wa-nezumi mb-2">ROOM 03</p>
+                    <h3 class="text-xl font-normal tracking-wide">苔清水 <span class="text-sm text-wa-nezumi">こけしみず</span></h3>
+                    <p class="font-gothic text-xs text-wa-sumi/60 mt-3 leading-relaxed">庭の苔庭を望む、一人旅にも好まれる部屋。8畳+板の間。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cuisine -->
+    <section id="cuisine" class="py-28 md:py-40">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+                <div class="reveal order-2 lg:order-1">
+                    <p class="font-gothic text-[10px] tracking-[0.4em] text-wa-kincha mb-6">CUISINE</p>
+                    <h2 class="text-3xl md:text-4xl font-light leading-relaxed mb-10 tracking-tight">
+                        土地の恵みを、<br>一皿に。
+                    </h2>
+                    <div class="space-y-6 font-gothic text-sm text-wa-sumi/70 leading-[2.2] font-light">
+                        <p>
+                            料理長が毎朝、地元の漁港と農家を巡り、その日もっとも良い素材を選びます。箱根西麓の野菜、相模湾の魚介、足柄の猪や鹿。土地と季節が決める献立です。
+                        </p>
+                        <p>
+                            器は地元の作家ものを中心に、料理が映える一枚を選んでお出しします。
+                        </p>
+                    </div>
+                    <div class="mt-12 pt-8 border-t border-wa-sumi/10">
+                        <dl class="grid grid-cols-2 gap-y-4 font-gothic text-xs">
+                            <dt class="text-wa-nezumi tracking-widest">夕食</dt>
+                            <dd class="text-wa-sumi/80">季節の懐石 全十品</dd>
+                            <dt class="text-wa-nezumi tracking-widest">朝食</dt>
+                            <dd class="text-wa-sumi/80">和朝食 / 洋朝食</dd>
+                            <dt class="text-wa-nezumi tracking-widest">お食事処</dt>
+                            <dd class="text-wa-sumi/80">個室ダイニング</dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="reveal order-1 lg:order-2">
+                    <div class="relative">
+                        <div class="img-zoom aspect-[4/5]">
+                            <img src="../images/ryokan/cuisine.jpg" alt="Kaiseki Japanese cuisine">
+                        </div>
+                        <div class="absolute -bottom-4 -left-4 md:-left-8 bg-wa-shironeri px-6 py-4 shadow-sm">
+                            <p class="font-gothic text-[9px] tracking-[0.3em] text-wa-nezumi">SEASONAL KAISEKI</p>
+                            <p class="text-lg mt-1">季節の懐石</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Onsen -->
+    <section id="onsen" class="relative py-28 md:py-40 bg-wa-sumi text-wa-shironeri overflow-hidden grain">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 relative z-[2]">
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-16 items-center">
+                <div class="hidden lg:flex lg:col-span-1 justify-center">
+                    <p class="vertical-rl text-2xl md:text-3xl font-light tracking-[0.3em] text-wa-shironeri/30 leading-relaxed reveal-left">
+                        源泉掛け流しの贅沢
+                    </p>
+                </div>
+                <div class="lg:col-span-2 reveal">
+                    <p class="font-gothic text-[10px] tracking-[0.4em] text-wa-kincha mb-6">ONSEN</p>
+                    <h2 class="text-3xl md:text-4xl font-light leading-relaxed mb-10 tracking-tight">
+                        山の湯に、<br>心ほどける。
+                    </h2>
+                    <div class="space-y-6 font-gothic text-sm text-wa-shironeri/60 leading-[2.2] font-light">
+                        <p>
+                            敷地内に湧く自家源泉は、弱アルカリ性の単純温泉。肌にやわらかく、身体の芯からゆっくりと温まります。
+                        </p>
+                        <p>
+                            大浴場の露天風呂では、渓流のせせらぎを聴きながら、四季の空を仰ぐ贅沢を。貸切風呂は檜と石の二種をご用意しております。
+                        </p>
+                    </div>
+                    <div class="mt-12 grid grid-cols-3 gap-6 pt-8 border-t border-wa-shironeri/10">
+                        <div class="text-center">
+                            <p class="text-2xl font-light text-wa-kincha">42<span class="text-sm">&#8451;</span></p>
+                            <p class="font-gothic text-[9px] tracking-widest text-wa-shironeri/40 mt-1">源泉温度</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-light text-wa-kincha">pH 8.5</p>
+                            <p class="font-gothic text-[9px] tracking-widest text-wa-shironeri/40 mt-1">泉質</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-light text-wa-kincha">3</p>
+                            <p class="font-gothic text-[9px] tracking-widest text-wa-shironeri/40 mt-1">浴場数</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 reveal">
+                    <div class="img-zoom aspect-[3/4]">
+                        <img src="../images/ryokan/onsen.jpg" alt="Japanese onsen hot spring">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery strip -->
+    <section class="py-4 bg-wa-kinu">
+        <div class="flex gap-4 overflow-hidden">
+            <div class="flex-shrink-0 img-zoom w-1/3 aspect-[16/9]">
+                <img src="../images/ryokan/gallery1.jpg" alt="Kyoto pagoda at sunset">
+            </div>
+            <div class="flex-shrink-0 img-zoom w-1/3 aspect-[16/9]">
+                <img src="../images/ryokan/gallery2.jpg" alt="Kyoto traditional street at dusk">
+            </div>
+            <div class="flex-shrink-0 img-zoom w-1/3 aspect-[16/9]">
+                <img src="../images/ryokan/cta.jpg" alt="Onsen town at night">
+            </div>
+        </div>
+    </section>
+
+    <!-- Access -->
+    <section id="access" class="py-28 md:py-40">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="text-center mb-20 reveal">
+                <p class="font-gothic text-[10px] tracking-[0.4em] text-wa-kincha mb-6">ACCESS</p>
+                <h2 class="text-3xl md:text-5xl font-light tracking-tight">交通案内</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 reveal">
+                <div class="text-center px-6">
+                    <div class="w-12 h-12 mx-auto mb-6 flex items-center justify-center">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4972F" stroke-width="1"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    </div>
+                    <h3 class="text-lg mb-3">所在地</h3>
+                    <p class="font-gothic text-xs text-wa-sumi/60 leading-relaxed">
+                        〒259-0314<br>神奈川県足柄下郡湯河原町<br>宮上750-1
+                    </p>
+                </div>
+                <div class="text-center px-6">
+                    <div class="w-12 h-12 mx-auto mb-6 flex items-center justify-center">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4972F" stroke-width="1"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="4" y1="9" x2="20" y2="9"/><line x1="10" y1="3" x2="10" y2="9"/></svg>
+                    </div>
+                    <h3 class="text-lg mb-3">電車でお越しの方</h3>
+                    <p class="font-gothic text-xs text-wa-sumi/60 leading-relaxed">
+                        JR東海道線 湯河原駅より<br>バス15分「奥湯河原」下車<br>送迎あり（要予約）
+                    </p>
+                </div>
+                <div class="text-center px-6">
+                    <div class="w-12 h-12 mx-auto mb-6 flex items-center justify-center">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4972F" stroke-width="1"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                    <h3 class="text-lg mb-3">ご予約について</h3>
+                    <p class="font-gothic text-xs text-wa-sumi/60 leading-relaxed">
+                        チェックイン 15:00<br>チェックアウト 11:00<br>お電話またはWebにて
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="reserve" class="relative py-28 md:py-36 overflow-hidden">
+        <img
+            src="../images/ryokan/cta.jpg"
+            alt="Onsen town at night"
+            class="absolute inset-0 w-full h-full object-cover"
+        >
+        <div class="absolute inset-0 bg-wa-sumi/60"></div>
+        <div class="max-w-3xl mx-auto px-6 md:px-12 text-center relative z-10 reveal">
+            <span class="kincha-line mx-auto mb-10"></span>
+            <h2 class="text-3xl md:text-5xl font-light tracking-tight leading-relaxed mb-6 text-wa-shironeri">
+                日常から離れる、<br>ほんの少しの時間を。
+            </h2>
+            <p class="font-gothic text-sm text-wa-shironeri/70 font-light mb-12 max-w-md mx-auto leading-relaxed">
+                ご予約・空室のお問い合わせはお電話またはWebフォームにて承ります。
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="#" class="px-10 py-4 bg-wa-kincha text-wa-shironeri font-gothic text-xs tracking-[0.2em] hover:bg-wa-kincha/80 transition-colors duration-700">
+                    Web予約
+                </a>
+                <a href="#" class="px-10 py-4 border border-wa-shironeri/60 text-wa-shironeri font-gothic text-xs tracking-[0.2em] hover:bg-wa-shironeri hover:text-wa-sumi transition-all duration-700">
+                    0460-XX-XXXX
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-wa-sumi text-wa-shironeri py-16">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+                <div>
+                    <p class="text-xl mb-4"><span class="text-wa-kincha">湯宿</span> かさね</p>
+                    <p class="font-gothic text-xs text-wa-shironeri/40 leading-relaxed">
+                        〒259-0314<br>神奈川県足柄下郡湯河原町宮上750-1<br>TEL: 0460-XX-XXXX
+                    </p>
+                </div>
+                <div>
+                    <p class="font-gothic text-[9px] tracking-[0.3em] text-wa-shironeri/40 mb-4">PAGES</p>
+                    <nav class="font-gothic text-xs text-wa-shironeri/60 space-y-3">
+                        <a href="#about" class="block hover:text-wa-kincha transition-colors">宿について</a>
+                        <a href="#rooms" class="block hover:text-wa-kincha transition-colors">客室</a>
+                        <a href="#cuisine" class="block hover:text-wa-kincha transition-colors">料理</a>
+                        <a href="#onsen" class="block hover:text-wa-kincha transition-colors">温泉</a>
+                    </nav>
+                </div>
+                <div>
+                    <p class="font-gothic text-[9px] tracking-[0.3em] text-wa-shironeri/40 mb-4">INFORMATION</p>
+                    <nav class="font-gothic text-xs text-wa-shironeri/60 space-y-3">
+                        <a href="#access" class="block hover:text-wa-kincha transition-colors">交通案内</a>
+                        <a href="#" class="block hover:text-wa-kincha transition-colors">プライバシーポリシー</a>
+                        <a href="#" class="block hover:text-wa-kincha transition-colors">特定商取引法に基づく表記</a>
+                    </nav>
+                </div>
+            </div>
+            <div class="pt-8 border-t border-wa-shironeri/10 flex flex-col md:flex-row justify-between items-center">
+                <p class="font-gothic text-[9px] tracking-[0.3em] text-wa-shironeri/30">Template by Tatsunori Tojo</p>
+                <p class="font-gothic text-[9px] tracking-[0.3em] text-wa-shironeri/30 mt-2 md:mt-0">Built with Claude Code</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal, .reveal-left').forEach(el => obs.observe(el));
+
+    const header = document.getElementById('header');
+    let lastScroll = 0;
+    window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        if (y > 80) {
+            header.style.backgroundColor = 'rgba(252,250,245,0.95)';
+            header.style.backdropFilter = 'blur(8px)';
+            header.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+            header.querySelectorAll('.nav-link').forEach(l => l.style.color = '#1A1A1A');
+            header.querySelector('a').style.color = '#1A1A1A';
+            header.querySelector('button').style.color = '#1A1A1A';
+        } else {
+            header.style.backgroundColor = 'transparent';
+            header.style.backdropFilter = 'none';
+            header.style.boxShadow = 'none';
+            header.querySelectorAll('.nav-link').forEach(l => l.style.color = '');
+            header.querySelector('a').style.color = '';
+            header.querySelector('button').style.color = '';
+        }
+    });
+
+    // Parallax hero image
+    const heroImg = document.getElementById('hero-img');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY < window.innerHeight) {
+            heroImg.style.transform = `translateY(${window.scrollY * 0.25}px) scale(1.1)`;
+        }
+    });
+    heroImg.style.transform = 'scale(1.1)';
+    </script>
+</body>
+</html>
