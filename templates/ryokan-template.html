@@ -39,7 +39,6 @@
 
     <style>
         ::selection { background-color: #C4972F; color: #FCFAF5; }
-        html { cursor: none; }
         body {
             background-color: #FCFAF5;
             color: #1A1A1A;
@@ -68,30 +67,6 @@
             animation: lineGrow 1.2s 0.8s cubic-bezier(0.19,1,0.22,1) forwards;
         }
         @keyframes lineGrow { to { width: 80px; } }
-
-        /* ---------- Custom Cursor ---------- */
-        #cursor {
-            position: fixed; width: 24px; height: 24px;
-            border: 1px solid #1A1A1A; border-radius: 50%;
-            pointer-events: none; z-index: 9998;
-            transform: translate(-50%,-50%);
-            transition: width 0.5s cubic-bezier(0.19,1,0.22,1), height 0.5s cubic-bezier(0.19,1,0.22,1),
-                        border-color 0.3s, background 0.3s, opacity 0.3s;
-            mix-blend-mode: difference;
-        }
-        #cursor.hover-link {
-            width: 56px; height: 56px;
-            background: rgba(247,247,245,0.12); border-color: #F5F0E8;
-        }
-        #cursor.on-dark { border-color: #F5F0E8; }
-        #cursor-dot {
-            position: fixed; width: 4px; height: 4px;
-            background: #1A1A1A; border-radius: 50%;
-            pointer-events: none; z-index: 9998;
-            transform: translate(-50%,-50%);
-            mix-blend-mode: difference;
-            transition: opacity 0.3s;
-        }
 
         /* ---------- Scrollbar ---------- */
         ::-webkit-scrollbar { width: 5px; }
@@ -212,10 +187,6 @@
         <p class="text-wa-shironeri text-3xl md:text-5xl font-light tracking-[0.2em]" id="preloader-text"></p>
         <div class="line-grow"></div>
     </div>
-
-    <!-- Custom Cursor -->
-    <div id="cursor"></div>
-    <div id="cursor-dot"></div>
 
     <!-- Mobile Menu -->
     <div id="mobile-menu">
@@ -570,37 +541,6 @@
             setTimeout(() => document.getElementById('preloader').classList.add('done'), 1800);
         });
     })();
-
-    // ---------- Custom Cursor ----------
-    const cursor = document.getElementById('cursor');
-    const cursorDot = document.getElementById('cursor-dot');
-    let cx = 0, cy = 0, dx = 0, dy = 0;
-    document.addEventListener('mousemove', e => { cx = e.clientX; cy = e.clientY; });
-    (function cursorLoop() {
-        dx += (cx - dx) * 0.12; dy += (cy - dy) * 0.12;
-        cursor.style.left = dx + 'px'; cursor.style.top = dy + 'px';
-        cursorDot.style.left = cx + 'px'; cursorDot.style.top = cy + 'px';
-        requestAnimationFrame(cursorLoop);
-    })();
-
-    // Cursor hover states
-    document.querySelectorAll('a, button').forEach(el => {
-        el.addEventListener('mouseenter', () => cursor.classList.add('hover-link'));
-        el.addEventListener('mouseleave', () => cursor.classList.remove('hover-link'));
-    });
-
-    // Cursor on dark sections
-    const darkSections = document.querySelectorAll('#onsen, footer, #reserve, #hero');
-    function updateCursorTheme() {
-        let onDark = false;
-        darkSections.forEach(s => {
-            const r = s.getBoundingClientRect();
-            if (cy >= r.top && cy <= r.bottom) onDark = true;
-        });
-        cursor.classList.toggle('on-dark', onDark);
-        cursorDot.style.background = onDark ? '#F5F0E8' : '#1A1A1A';
-    }
-    document.addEventListener('mousemove', updateCursorTheme);
 
     // ---------- Scroll Reveal ----------
     const revealObs = new IntersectionObserver(entries => {
